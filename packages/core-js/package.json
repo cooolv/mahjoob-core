@@ -6,8 +6,15 @@
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -17,5 +24,15 @@
     "typescript": "^5.7.0",
     "@types/node": "^22.0.0"
   },
-  "engines": { "node": ">=22.6" }
+  "engines": {
+    "node": ">=22.6"
+  },
+  "peerDependencies": {
+    "onnxruntime-web": ">=1.17.0"
+  },
+  "peerDependenciesMeta": {
+    "onnxruntime-web": {
+      "optional": true
+    }
+  }
 }

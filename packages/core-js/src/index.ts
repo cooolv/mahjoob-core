@@ -5,3 +5,4 @@ export type { GuardOptions } from "./guard.ts";
 export { VideoGuard } from "./video.ts";
 export type { FrameSource, VideoState, VideoGuardOptions } from "./video.ts";
 export { LruCache } from "./cache.ts";
+export * from "./adapters/index.ts";
