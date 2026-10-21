@@ -1,0 +1,10 @@
+{
+  "name": "مثال (استبدله ببياناتك المرخّصة)",
+  "source": "اكتب هنا مصدر البيانات وترخيصها",
+  "entries": [
+    { "path": "images/a001.jpg", "gender": "female", "tags": ["face"] },
+    { "path": "images/a002.jpg", "gender": "male", "tags": ["face"] },
+    { "path": "images/a003.jpg", "gender": "none", "tags": ["landscape"] },
+    { "path": "images/a004.jpg", "gender": "mixed", "tags": ["group", "small"] }
+  ]
+}
