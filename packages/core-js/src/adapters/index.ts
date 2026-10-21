@@ -4,7 +4,7 @@ export type {
   OrtLike, OrtSessionLike, OrtTensorLike,
 } from "./onnx.ts";
 export { toRawImage } from "./browser.ts";
-export { decodeDetections, nms, iou, unletterbox } from "./decode.ts";
-export type { DecodeConfig, Candidate } from "./decode.ts";
+export { decodeDetections, decodeYuNet, nms, iou, unletterbox } from "./decode.ts";
+export type { DecodeConfig, YuNetDecodeConfig, NamedTensor, Candidate } from "./decode.ts";
 export { isRawImage, letterbox, resizeRegion, toCHW } from "./image.ts";
 export type { RawImage, Normalize, LetterboxInfo } from "./image.ts";

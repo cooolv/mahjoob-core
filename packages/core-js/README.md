@@ -83,6 +83,21 @@ const guard = new ImageGuard({ analyzer, target: "female" });
 
 الصناديق بصيغة `cx,cy,w,h` والدرجات يجب أن تكون مطبَّقًا عليها sigmoid داخل النموذج.
 
+**كاشف YuNet (وجوه)**: له 12 مخرجًا فيُفَكّ بـ`layout: "yunet"`. مدخله BGR بقيم 0..255 (بدون قسمة على 255)
+وأبعاده من مضاعفات 32 (نسخة 2023mar مثبّتة على 640×640):
+
+```ts
+detector: {
+  session: yunetSession,
+  inputSize: 640,
+  normalize: { scale: 1, bgr: true },
+  decode: { layout: "yunet", scoreThreshold: 0.6 },
+},
+```
+
+**مصنّف بأكثر من مخرج**: حدّد المخرج المطلوب بـ`outputName` (مثلًا `"prob"`)، وللنماذج التي تتوقع 0..255
+استخدم `normalize: { scale: 1 }` وللترتيب BGR أضف `bgr: true`.
+
 **أنماط مخرجات المصنّف**: `single-prob` و`single-logit` و`softmax` (مع `femaleIndex`).
 
 **سلوك الفشل (Fail-Closed)**

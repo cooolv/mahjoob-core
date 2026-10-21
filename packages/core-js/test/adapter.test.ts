@@ -167,3 +167,76 @@ test("مدخل غير مدعوم خارج المتصفح => خطأ => حجب", a
   const d = await g.check({ not: "an image" });
   assert.deepEqual([d.action, d.reason], ["block", "analysis-error"]);
 });
+
+/* ===== YuNet + خيارات المحوّل الجديدة ===== */
+import { decodeYuNet } from "../src/index.ts";
+
+/** مخرجات YuNet وهمية لمدخل 64x64: كلها أصفار عدا خلية واحدة (للاختبار فقط) */
+function yunetOutputs(w: number, h: number, cell?: { stride: number; r: number; c: number; cls: number; obj: number; bbox: number[] }) {
+  const o: Record<string, { data: Float32Array; dims: number[] }> = {};
+  for (const s of [8, 16, 32]) {
+    const a = Math.floor(w / s) * Math.floor(h / s);
+    o[`cls_${s}`] = { data: new Float32Array(a), dims: [1, a, 1] };
+    o[`obj_${s}`] = { data: new Float32Array(a), dims: [1, a, 1] };
+    o[`bbox_${s}`] = { data: new Float32Array(a * 4), dims: [1, a, 4] };
+    o[`kps_${s}`] = { data: new Float32Array(a * 10), dims: [1, a, 10] };
+  }
+  if (cell) {
+    const cols = Math.floor(w / cell.stride);
+    const i = cell.r * cols + cell.c;
+    o[`cls_${cell.stride}`]!.data[i] = cell.cls;
+    o[`obj_${cell.stride}`]!.data[i] = cell.obj;
+    o[`bbox_${cell.stride}`]!.data.set(cell.bbox, i * 4);
+  }
+  return o;
+}
+const cellA = { stride: 16, r: 1, c: 2, cls: 0.81, obj: 1, bbox: [0.5, 0.5, Math.log(2), Math.log(2)] };
+
+test("YuNet: فك خلية واحدة بإحداثيات صحيحة", () => {
+  const r = decodeYuNet(yunetOutputs(64, 64, cellA), 64, 64);
+  assert.equal(r.length, 1);
+  assert.ok(Math.abs(r[0]!.score - 0.9) < 1e-6);
+  const b = r[0]!.box;
+  assert.ok(Math.abs(b.x - 24) < 1e-4 && Math.abs(b.y - 8) < 1e-4);
+  assert.ok(Math.abs(b.width - 32) < 1e-4 && Math.abs(b.height - 32) < 1e-4);
+});
+
+test("YuNet: أقل من العتبة يُهمَل، والمخرجات الناقصة أو الأبعاد الخاطئة ترمي خطأ", () => {
+  assert.equal(decodeYuNet(yunetOutputs(64, 64, { ...cellA, cls: 0.1 }), 64, 64).length, 0);
+  const missing = yunetOutputs(64, 64, cellA);
+  delete missing["obj_32"];
+  assert.throws(() => decodeYuNet(missing, 64, 64), /ناقصة/);
+  assert.throws(() => decodeYuNet(yunetOutputs(32, 32), 64, 64), /لا تطابق/);
+});
+
+test("toCHW: scale=1 مع BGR (نمط YuNet وIntel)", () => {
+  const c = toCHW(solid(1, 1, [255, 0, 51]), { scale: 1, bgr: true });
+  assert.deepEqual(Array.from(c), [51, 0, 255]);
+});
+
+test("OnnxAnalyzer + YuNet + مصنّف بمخرجين (outputName)", async () => {
+  const det: OrtSessionLike = {
+    inputNames: ["input"], outputNames: Object.keys(yunetOutputs(64, 64)),
+    async run() { return yunetOutputs(64, 64, cellA); },
+  };
+  const cls: OrtSessionLike = {
+    inputNames: ["data"], outputNames: ["age_conv3", "prob"],
+    async run() {
+      return {
+        age_conv3: { data: Float32Array.from([0.3]), dims: [1, 1, 1, 1] },
+        prob: { data: Float32Array.from([0.97, 0.03]), dims: [1, 2, 1, 1] }, // [أنثى، ذكر]
+      };
+    },
+  };
+  const a = new OnnxAnalyzer({
+    ort,
+    detector: { session: det, inputSize: 64, normalize: { scale: 1, bgr: true }, decode: { layout: "yunet" } },
+    classifier: { session: cls, inputSize: [62, 62], normalize: { scale: 1, bgr: true }, outputName: "prob", output: { type: "softmax", femaleIndex: 0 } },
+  });
+  const r = await a.analyze(solid(64, 64, [90, 90, 90]));
+  assert.equal(r.length, 1);
+  const b = r[0]!.box;
+  assert.ok(Math.abs(b.x - 24) < 1e-3 && Math.abs(b.y - 8) < 1e-3);
+  assert.ok(Math.abs(b.width - 32) < 1e-3 && Math.abs(b.height - 32) < 1e-3);
+  assert.ok(Math.abs(r[0]!.pFemale! - 0.97) < 1e-6);
+});

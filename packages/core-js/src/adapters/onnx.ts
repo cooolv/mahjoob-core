@@ -1,6 +1,6 @@
 import type { ImageInput, PersonAnalyzer, PersonDetection } from "../types.ts";
-import { decodeDetections, unletterbox } from "./decode.ts";
-import type { DecodeConfig } from "./decode.ts";
+import { decodeDetections, decodeYuNet, unletterbox } from "./decode.ts";
+import type { DecodeConfig, YuNetDecodeConfig } from "./decode.ts";
 import { isRawImage, letterbox, resizeRegion, toCHW } from "./image.ts";
 import type { Normalize, RawImage } from "./image.ts";
 import { toRawImage } from "./browser.ts";
@@ -24,7 +24,7 @@ export interface DetectorConfig {
   /** حجم المدخل المربّع (مثلًا 640) أو [عرض, ارتفاع] */
   inputSize: number | [number, number];
   normalize?: Normalize;
-  decode: DecodeConfig;
+  decode: DecodeConfig | YuNetDecodeConfig;
 }
 
 /** كيف نفسّر مخرجات مصنّف الجنس */
@@ -35,6 +35,8 @@ export type ClassifierOutput =
 
 export interface ClassifierConfig {
   session: OrtSessionLike;
+  /** اسم المخرج المطلوب إن كان للنموذج أكثر من مخرج (افتراضي: الأول) */
+  outputName?: string;
   inputSize: [number, number]; // [عرض, ارتفاع]
   normalize?: Normalize;
   output: ClassifierOutput;
@@ -109,9 +111,14 @@ export class OnnxAnalyzer implements PersonAnalyzer {
     const input = new this.o.ort.Tensor("float32", toCHW(lb.image, dc.normalize), [1, 3, th, tw]);
     const outs = await dc.session.run({ [dc.session.inputNames[0]!]: input });
     this.check(signal);
-    const outTensor = outs[dc.session.outputNames[0]!];
-    if (!outTensor) throw new Error("لا مخرجات من نموذج الكشف");
-    const cands = decodeDetections(outTensor.data, outTensor.dims, dc.decode);
+    let cands;
+    if (dc.decode.layout === "yunet") {
+      cands = decodeYuNet(outs, tw, th, dc.decode);
+    } else {
+      const outTensor = outs[dc.session.outputNames[0]!];
+      if (!outTensor) throw new Error("لا مخرجات من نموذج الكشف");
+      cands = decodeDetections(outTensor.data, outTensor.dims, dc.decode);
+    }
 
     const people = cands
       .map((c) => ({ box: unletterbox(c.box, lb, raw), score: c.score }))
@@ -151,8 +158,8 @@ export class OnnxAnalyzer implements PersonAnalyzer {
     const crop = resizeRegion(raw, cx - w / 2, cy - h / 2, w, h, c.inputSize[0], c.inputSize[1]);
     const t = new this.o.ort.Tensor("float32", toCHW(crop, c.normalize), [1, 3, c.inputSize[1], c.inputSize[0]]);
     const outs = await c.session.run({ [c.session.inputNames[0]!]: t });
-    const out = outs[c.session.outputNames[0]!];
-    if (!out) throw new Error("لا مخرجات من المصنّف");
+    const out = outs[c.outputName ?? c.session.outputNames[0]!];
+    if (!out) throw new Error("لا مخرجات من المصنّف (تحقق من outputName)");
     return femaleProbability(out.data, c.output);
   }
 

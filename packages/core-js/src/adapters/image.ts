@@ -12,6 +12,8 @@ export interface Normalize {
   std?: [number, number, number];
   /** ترتيب القنوات BGR بدل RGB (افتراضي false) */
   bgr?: boolean;
+  /** معامل ضرب قيمة البكسل قبل المتوسط/الانحراف (افتراضي 1/255). استخدم 1 للنماذج التي تتوقع 0..255 */
+  scale?: number;
 }
 
 export interface LetterboxInfo {
@@ -97,9 +99,10 @@ export function toCHW(img: RawImage, n: Normalize = {}): Float32Array {
   const plane = img.width * img.height;
   const out = new Float32Array(3 * plane);
   const order = n.bgr ? [2, 1, 0] : [0, 1, 2];
+  const sc = n.scale ?? 1 / 255;
   for (let i = 0; i < plane; i++) {
     for (let c = 0; c < 3; c++) {
-      const v = img.data[i * 4 + order[c]!]! / 255;
+      const v = img.data[i * 4 + order[c]!]! * sc;
       out[c * plane + i] = (v - mean[c]!) / std[c]!;
     }
   }

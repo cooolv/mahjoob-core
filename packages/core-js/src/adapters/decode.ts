@@ -78,3 +78,57 @@ export function unletterbox(b: Box, lb: LetterboxInfo, orig: Pick<RawImage, "wid
   const y2 = Math.min(orig.height, Math.max(0, (b.y + b.height - lb.padY) / lb.scale));
   return { x: x1, y: y1, width: Math.max(0, x2 - x1), height: Math.max(0, y2 - y1) };
 }
+
+/** إعداد فك YuNet (OpenCV Zoo): 12 مخرجًا cls_/obj_/bbox_/kps_ لكل stride من 8 و16 و32 */
+export interface YuNetDecodeConfig {
+  layout: "yunet";
+  scoreThreshold?: number;
+  iouThreshold?: number;
+}
+
+export interface NamedTensor {
+  readonly data: ArrayLike<number>;
+  readonly dims: readonly number[];
+}
+
+const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
+
+/**
+ * فك مخرجات YuNet كما في OpenCV FaceDetectorYN:
+ * الدرجة = sqrt(clamp(cls) * clamp(obj))، المركز = (عمود + انحراف) × stride،
+ * العرض والارتفاع = exp(قيمة) × stride. الصناديق بإحداثيات مدخل النموذج.
+ */
+export function decodeYuNet(
+  outputs: Record<string, NamedTensor>, width: number, height: number,
+  cfg: Pick<YuNetDecodeConfig, "scoreThreshold" | "iouThreshold"> = {},
+): Candidate[] {
+  const thr = cfg.scoreThreshold ?? 0.6;
+  const out: Candidate[] = [];
+  for (const s of [8, 16, 32]) {
+    const cls = outputs[`cls_${s}`];
+    const obj = outputs[`obj_${s}`];
+    const bbox = outputs[`bbox_${s}`];
+    if (!cls || !obj || !bbox) throw new Error(`مخرجات YuNet ناقصة للـstride ${s} (المتوقع cls_${s} وobj_${s} وbbox_${s})`);
+    const cols = Math.floor(width / s);
+    const rows = Math.floor(height / s);
+    const n = cols * rows;
+    if (cls.data.length < n || obj.data.length < n || bbox.data.length < n * 4) {
+      throw new Error(`أبعاد مخرجات YuNet لا تطابق حجم المدخل ${width}x${height} عند stride ${s}`);
+    }
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        const score = Math.sqrt(clamp01(cls.data[i]!) * clamp01(obj.data[i]!));
+        if (!(score >= thr)) continue;
+        const cx = (c + bbox.data[i * 4]!) * s;
+        const cy = (r + bbox.data[i * 4 + 1]!) * s;
+        const w = Math.exp(bbox.data[i * 4 + 2]!) * s;
+        const h = Math.exp(bbox.data[i * 4 + 3]!) * s;
+        if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+          out.push({ box: { x: cx - w / 2, y: cy - h / 2, width: w, height: h }, score });
+        }
+      }
+    }
+  }
+  return nms(out, cfg.iouThreshold ?? 0.3);
+}
