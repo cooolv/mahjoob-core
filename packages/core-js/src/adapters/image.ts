@@ -73,9 +73,10 @@ export function resizeRegion(
 
 /** تغيير الحجم مع الحفاظ على النسبة وحشو الباقي بلون رمادي (Letterbox) */
 export function letterbox(
-  src: RawImage, tw: number, th: number, padValue = 114,
+  src: RawImage, tw: number, th: number, padValue = 114, allowUpscale = true,
 ): { image: RawImage } & LetterboxInfo {
-  const scale = Math.min(tw / src.width, th / src.height);
+  let scale = Math.min(tw / src.width, th / src.height);
+  if (!allowUpscale) scale = Math.min(1, scale);
   const nw = Math.max(1, Math.round(src.width * scale));
   const nh = Math.max(1, Math.round(src.height * scale));
   const padX = Math.floor((tw - nw) / 2);

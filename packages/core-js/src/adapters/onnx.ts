@@ -25,6 +25,8 @@ export interface DetectorConfig {
   inputSize: number | [number, number];
   normalize?: Normalize;
   decode: DecodeConfig | YuNetDecodeConfig;
+  /** السماح بتكبير الصور الصغيرة لتملأ المدخل (افتراضي true). YuNet يُفضَّل معه false لأنه مدرّب على وجوه حتى ~300px */
+  allowUpscale?: boolean;
 }
 
 /** كيف نفسّر مخرجات مصنّف الجنس */
@@ -107,7 +109,7 @@ export class OnnxAnalyzer implements PersonAnalyzer {
     // 1) الكشف
     const dc = this.o.detector;
     const [tw, th] = typeof dc.inputSize === "number" ? [dc.inputSize, dc.inputSize] : dc.inputSize;
-    const lb = letterbox(raw, tw, th);
+    const lb = letterbox(raw, tw, th, 114, dc.allowUpscale ?? true);
     const input = new this.o.ort.Tensor("float32", toCHW(lb.image, dc.normalize), [1, 3, th, tw]);
     const outs = await dc.session.run({ [dc.session.inputNames[0]!]: input });
     this.check(signal);

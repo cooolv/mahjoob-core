@@ -240,3 +240,12 @@ test("OnnxAnalyzer + YuNet + مصنّف بمخرجين (outputName)", async () =
   assert.ok(Math.abs(b.width - 32) < 1e-3 && Math.abs(b.height - 32) < 1e-3);
   assert.ok(Math.abs(r[0]!.pFemale! - 0.97) < 1e-6);
 });
+
+test("letterbox بدون تكبير: الصورة الصغيرة تبقى بحجمها وتُوسَّط", () => {
+  const r = letterbox(solid(50, 50, [255, 0, 0]), 100, 100, 114, false);
+  assert.equal(r.scale, 1);
+  assert.equal(r.padX, 25);
+  assert.equal(r.padY, 25);
+  const big = letterbox(solid(200, 200, [255, 0, 0]), 100, 100, 114, false);
+  assert.equal(big.scale, 0.5);                       // التصغير يحدث دائمًا
+});
