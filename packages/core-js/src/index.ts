@@ -6,3 +6,4 @@ export { VideoGuard } from "./video.ts";
 export type { FrameSource, VideoState, VideoGuardOptions } from "./video.ts";
 export { LruCache } from "./cache.ts";
 export * from "./adapters/index.ts";
+export * from "./presets/yunetGenderV1.ts";
