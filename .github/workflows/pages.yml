@@ -1,0 +1,65 @@
+name: Demo (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "examples/demo/**"
+      - "packages/core-js/src/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build core
+        working-directory: packages/core-js
+        run: |
+          npm install
+          npm run build
+      - name: Assemble site
+        run: |
+          mkdir -p _site/models _site/core
+          cp -r packages/core-js/dist/* _site/core/
+          cp examples/demo/index.html examples/demo/demo.js _site/
+      - name: Download YuNet (MIT)
+        run: |
+          curl -fL --retry 3 -o _site/models/face_detection_yunet_2023mar.onnx \
+            https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx
+      - name: Extract gender-v1 (CC0) from age-and-gender
+        run: |
+          pip download age-and-gender==2.0.0 --no-deps -d wheels
+          python3 - <<'PY'
+          import glob, zipfile
+          z = zipfile.ZipFile(glob.glob("wheels/*.whl")[0])
+          open("_site/models/gender-v1.onnx", "wb").write(z.read("age_and_gender/models/gender-v1.onnx"))
+          PY
+      - name: Sanity check models
+        run: ls -l _site/models && test $(stat -c%s _site/models/gender-v1.onnx) -gt 100000 && test $(stat -c%s _site/models/face_detection_yunet_2023mar.onnx) -gt 50000
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
