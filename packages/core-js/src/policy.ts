@@ -4,6 +4,7 @@ import type { Box, Decision, PersonDetection, Policy } from "./types.ts";
 function pTarget(d: PersonDetection, p: Policy): number | undefined {
   if (d.pFemale === undefined) return undefined;
   if ((d.genderConfidence ?? 0) < p.minGenderConfidence) return undefined;
+  if (p.target === "any") return 1;
   const pf = Math.min(1, Math.max(0, d.pFemale));
   return p.target === "female" ? pf : 1 - pf;
 }
@@ -15,6 +16,21 @@ function pTarget(d: PersonDetection, p: Policy): number | undefined {
 export function decide(detections: PersonDetection[], policy: Policy): Decision {
   const blocked: Box[] = [];
   let reason: Decision["reason"] | undefined;
+
+  // وضع "any": لا نصنّف الجنس إطلاقًا، أي شخص مكتشف => حجب
+  if (policy.target === "any") {
+    for (const d of detections) {
+      if (d.confidence >= policy.minPersonConfidence) {
+        blocked.push(d.box);
+        reason = "any-person";
+      } else if (policy.strict && d.confidence > 0) {
+        blocked.push(d.box);
+        reason ??= "low-confidence";
+      }
+    }
+    if (blocked.length > 0) return { action: "block", reason: reason!, regions: blocked };
+    return { action: "allow", reason: "no-person", regions: [] };
+  }
 
   for (const d of detections) {
     const isPerson = d.confidence >= policy.minPersonConfidence;

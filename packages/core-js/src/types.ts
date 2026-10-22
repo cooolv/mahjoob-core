@@ -1,5 +1,5 @@
-/** الجنس المستهدف بالحجب */
-export type TargetGender = "female" | "male";
+/** الجنس المستهدف بالحجب. "any" = حجب أي شخص بلا تصنيف جنس (أقصى احتياط) */
+export type TargetGender = "female" | "male" | "any";
 
 export interface Box {
   x: number;
@@ -31,6 +31,7 @@ export type Action = "allow" | "block";
 
 export type Reason =
   | "target-gender"      // شخص بجنس مستهدف
+  | "any-person"         // وضع target="any": شخص مكتشف
   | "uncertain-gender"   // شخص لم يُحسم جنسه (وضع صارم)
   | "low-confidence"     // كشف ضعيف مشتبه (وضع صارم)
   | "analysis-error"     // خطأ في التحليل

@@ -107,3 +107,9 @@ test("التقرير: يحوي تحذير العيّنة الصغيرة والأ
   assert.match(md, /فشل تحليلها أو تحميلها: 1/);
   assert.match(md, /أول خطأ: boom/);
 });
+
+test('shouldBlock مع target="any": كل صورة فيها أشخاص تُحجب', () => {
+  assert.equal(shouldBlock({ path: "a", gender: "male" }, "any"), true);
+  assert.equal(shouldBlock({ path: "a", gender: "mixed" }, "any"), true);
+  assert.equal(shouldBlock({ path: "a", gender: "none" }, "any"), false);
+});

@@ -23,7 +23,7 @@ const USAGE = `الاستخدام:
   --lenient   يعطّل الوضع الصارم في السياسة المعتمدة (الافتراضي: صارم)`;
 
 const a = args(process.argv.slice(2));
-if (!a.manifest || !a.analyzer || (a.target !== "female" && a.target !== "male")) {
+if (!a.manifest || !a.analyzer || (a.target !== "female" && a.target !== "male" && a.target !== "any")) {
   console.error(USAGE);
   process.exit(2);
 }

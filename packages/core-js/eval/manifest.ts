@@ -45,5 +45,6 @@ export function validateManifest(x: unknown): Manifest {
 
 /** هل يجب حجب هذه الصورة؟ (الحقيقة الأرضية بالنسبة للجنس المستهدف) */
 export function shouldBlock(e: ManifestEntry, target: TargetGender): boolean {
+  if (target === "any") return e.gender !== "none";
   return e.gender === "mixed" || e.gender === target;
 }

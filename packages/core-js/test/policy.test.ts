@@ -59,3 +59,16 @@ test("قيم خارج المدى لا تكسر الدالة", () => {
   assert.equal(decide([det({ pFemale: 7 })], pol()).action, "block");
   assert.equal(decide([det({ pFemale: -3 })], pol()).action, "allow");
 });
+
+test('وضع "any": أي شخص يُحجب بلا تصنيف جنس', () => {
+  const r = decide([det({ pFemale: 0.01 })], pol({ target: "any" }));
+  assert.deepEqual([r.action, r.reason], ["block", "any-person"]);
+  assert.equal(decide([det({ pFemale: undefined, genderConfidence: undefined })], pol({ target: "any" })).action, "block");
+});
+
+test('وضع "any": لا أشخاص => سماح، وكشف ضعيف => حجب في الصارم فقط', () => {
+  assert.equal(decide([], pol({ target: "any" })).action, "allow");
+  const weak = det({ confidence: 0.1, pFemale: undefined });
+  assert.equal(decide([weak], pol({ target: "any" })).action, "block");
+  assert.equal(decide([weak], pol({ target: "any", strict: false })).action, "allow");
+});
