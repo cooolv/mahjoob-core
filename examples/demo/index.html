@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تجربة Mahjoob Core</title>
+<style>
+  :root { --bg:#fafaf8; --fg:#1d1d1b; --muted:#6b6b66; --card:#fff; --line:#dcdcd4; --ok:#1b7f4b; --bad:#b3261e; --warn:#fff3cd; --warnfg:#5c4400; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --fg:#ecece6; --muted:#9a9a92; --card:#212120; --line:#3a3a36; --ok:#5cc98d; --bad:#ff8a80; --warn:#3b3210; --warnfg:#f3df9a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font-family: system-ui, "Segoe UI", Tahoma, sans-serif; line-height:1.6; max-width:980px; margin-inline:auto; }
+  h1 { font-size:1.4rem; margin:0 0 4px; }
+  h2 { font-size:1.1rem; margin:24px 0 8px; }
+  p { margin:6px 0; }
+  .muted { color:var(--muted); font-size:.9rem; }
+  .warn { background:var(--warn); color:var(--warnfg); padding:10px 12px; border-radius:8px; }
+  .controls { display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; padding:12px; background:var(--card); border:1px solid var(--line); border-radius:8px; }
+  .controls label { display:flex; gap:6px; align-items:center; }
+  input[type=number] { width:5em; }
+  #status { margin:10px 0; font-weight:600; }
+  #status.err { color:var(--bad); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-top:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .imgwrap { position:relative; background:#000; }
+  .imgwrap img { display:block; width:100%; height:auto; }
+  .covered img { filter: blur(30px); }
+  body.reveal .covered img { filter:none; }
+  .boxes div { position:absolute; border:2px solid #ffd400; box-shadow:0 0 0 1px #0008; }
+  .boxes div.f { border-color:#ff4fa3; }
+  .boxes div.m { border-color:#3aa0ff; }
+  .info { padding:8px 10px; font-size:.88rem; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-weight:700; font-size:.8rem; }
+  .tag.allow { background:var(--ok); color:#fff; }
+  .tag.block { background:var(--bad); color:#fff; }
+  .vwrap { position:relative; max-width:640px; background:#000; border-radius:8px; overflow:hidden; }
+  .vwrap video { display:block; width:100%; }
+  #vcover { position:absolute; inset:0 0 44px 0; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+  #vcover[hidden] { display:none; }
+  footer { margin-top:32px; font-size:.82rem; color:var(--muted); border-top:1px solid var(--line); padding-top:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>تجربة Mahjoob Core</h1>
+  <p class="muted">كل المعالجة تتم داخل متصفحك. لا تُرفع أي صورة ولا فيديو إلى أي خادم.</p>
+</header>
+
+<p class="warn">
+  تنبيه: هذه صفحة تجريبية. النموذج الحالي (YuNet + gender-v1) سجّل في قياسنا تسرّبًا نحو 7% على وجوه واضحة (أنثى لم تُحجب)،
+  ويُتوقع أسوأ على صور الإنترنت. الصور التي لا يُكتشف فيها وجه <b>تمرّ</b>. للأمان الأعلى اختر «حجب كل الأشخاص».
+</p>
+
+<h2>الإعدادات</h2>
+<div class="controls">
+  <label>الحجب:
+    <select id="target">
+      <option value="female">الإناث</option>
+      <option value="male">الذكور</option>
+      <option value="any">كل الأشخاص (بلا تصنيف جنس)</option>
+    </select>
+  </label>
+  <label>العتبة <input type="number" id="thr" value="0.2" min="0.01" max="0.99" step="0.05"></label>
+  <label><input type="checkbox" id="strict" checked> وضع صارم (أي غموض أو خطأ = حجب)</label>
+  <label><input type="checkbox" id="reveal"> إظهار المحجوب للفحص فقط</label>
+</div>
+<p id="status">جارٍ تحميل النماذج…</p>
+
+<h2>صور</h2>
+<input type="file" id="imgs" accept="image/*" multiple disabled>
+<p class="muted">تبدأ كل صورة مموّهة، ولا تُكشف إلا إذا سمح القرار. المربعات: وردي = أنثى مرجّحة، أزرق = ذكر مرجّح.</p>
+<div class="grid" id="grid"></div>
+
+<h2>فيديو</h2>
+<input type="file" id="vid" accept="video/*" disabled>
+<p class="muted">يبدأ الفيديو مغطّى، ولا يُكشف إلا بعد إطارين آمنين متتاليين، ويُغطّى فورًا عند أي إطار مشتبه أو عند التقديم والتأخير.</p>
+<div class="vwrap"><video id="video" controls muted playsinline></video><div id="vcover">مغطّى</div></div>
+<p id="vstate" class="muted"></p>
+
+<footer>
+  النماذج: YuNet (ترخيص MIT، OpenCV Zoo) و gender-v1 (CC0، مساهمة Cydral Technology في dlib-models، عبر حزمة age-and-gender).
+  التشغيل بواسطة onnxruntime-web (MIT). الكود: Mahjoob Core (MIT).
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+<script type="module" src="./demo.js"></script>
+</body>
+</html>
