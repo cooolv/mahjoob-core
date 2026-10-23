@@ -1,16 +1,16 @@
-# @mahjoob/core
+# mahjoob-core
 
 On-device, open-source core for blocking images (and video frames) of one gender — or of any person — in browser extensions and web apps.
 It bundles a decision engine (fail-closed), an image guard, a video guard, and an ONNX Runtime adapter with a ready preset
 (YuNet face detector + gender-v1 classifier). **No models are bundled**: you download them and keep their license notices.
 
 ```bash
-npm install @mahjoob/core onnxruntime-web
+npm install mahjoob-core onnxruntime-web
 ```
 
 ```ts
 import * as ort from "onnxruntime-web";
-import { ImageGuard, createYuNetGenderV1Analyzer, serialized } from "@mahjoob/core";
+import { ImageGuard, createYuNetGenderV1Analyzer, serialized } from "mahjoob-core";
 
 const analyzer = serialized(createYuNetGenderV1Analyzer({ ort, yunetSession, genderSession }));
 const guard = new ImageGuard({ analyzer, target: "female" });   // "female" | "male" | "any"
@@ -18,7 +18,7 @@ const decision = await guard.check(imageElementOrBitmap);        // { action: "a
 ```
 
 No bundler? Use it straight from a CDN with an import map:
-`https://cdn.jsdelivr.net/npm/@mahjoob/core@0.1.0/dist/index.js`.
+`https://cdn.jsdelivr.net/npm/mahjoob-core@0.1.0/dist/index.js`.
 
 **Accuracy is not 100%.** Measured on 200 fresh FairFace images (clear, close faces): about 7% of female faces were not blocked
 (95% CI 3.4–13.7%) and about 28% of male faces were blocked by mistake at threshold 0.2. Images where no face is detected pass through.
@@ -26,13 +26,13 @@ Use `target: "any"` for the strictest mode. See the Arabic documentation below f
 
 ---
 
-# @mahjoob/core
+# mahjoob-core
 
 ## مثال: صورة أو مصغّرة
 
 ```ts
-import { ImageGuard } from "@mahjoob/core";
-import type { PersonAnalyzer } from "@mahjoob/core";
+import { ImageGuard } from "mahjoob-core";
+import type { PersonAnalyzer } from "mahjoob-core";
 
 // تنفّذها أنت: تشغّل نموذج الكشف + تصنيف الجنس وتعيد قائمة PersonDetection
 const analyzer: PersonAnalyzer = {
@@ -54,7 +54,7 @@ if (decision.action === "block") {
 ## مثال: فيديو
 
 ```ts
-import { VideoGuard } from "@mahjoob/core";
+import { VideoGuard } from "mahjoob-core";
 
 const vg = new VideoGuard({
   guard,
@@ -75,7 +75,7 @@ video.addEventListener("seeking", () => vg.reset());
 
 ```ts
 import * as ort from "onnxruntime-web";
-import { ImageGuard, OnnxAnalyzer } from "@mahjoob/core";
+import { ImageGuard, OnnxAnalyzer } from "mahjoob-core";
 
 const [detSession, clsSession] = await Promise.all([
   ort.InferenceSession.create("/models/detector.onnx"),
@@ -149,7 +149,7 @@ detector: {
 
 ```ts
 import * as ort from "onnxruntime-web";
-import { ImageGuard, createYuNetGenderV1Analyzer } from "@mahjoob/core";
+import { ImageGuard, createYuNetGenderV1Analyzer } from "mahjoob-core";
 
 const yunetSession = await ort.InferenceSession.create("/models/face_detection_yunet_2023mar.onnx");
 const genderSession = await ort.InferenceSession.create("/models/gender-v1.onnx");

@@ -1,5 +1,5 @@
 {
-  "name": "@mahjoob/core",
+  "name": "mahjoob-core",
   "version": "0.1.0",
   "description": "On-device image/video gender filtering core (image guard, video guard, ONNX adapter). نواة مفتوحة المصدر لحجب صور جنس معيّن محليًا على الجهاز",
   "keywords": [

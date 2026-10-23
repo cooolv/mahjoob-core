@@ -3,7 +3,7 @@
 يقيس خط المعالجة الكامل: كاشف الوجوه YuNet ثم نموذج الجنس gender-v1، على صور manifest.json،
 بعدة قيم لهامش الاقتطاع حول الوجه، ليُختار الهامش الأنسب للمشروع.
 
-يطابق منطق مكتبة @mahjoob/core (نفس Letterbox وفك YuNet والاقتطاع والتجهيز).
+يطابق منطق مكتبة mahjoob-core (نفس Letterbox وفك YuNet والاقتطاع والتجهيز).
 
 التجهيز: pip install onnxruntime pillow numpy
 التشغيل:

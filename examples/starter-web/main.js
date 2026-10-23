@@ -1,5 +1,5 @@
-// قالب بسيط: يربط @mahjoob/core بنموذجي YuNet وgender-v1 ويفحص صورة يختارها المستخدم.
-import { ImageGuard, createYuNetGenderV1Analyzer, serialized } from "@mahjoob/core";
+// قالب بسيط: يربط mahjoob-core بنموذجي YuNet وgender-v1 ويفحص صورة يختارها المستخدم.
+import { ImageGuard, createYuNetGenderV1Analyzer, serialized } from "mahjoob-core";
 
 const $ = (id) => document.getElementById(id);
 const ort = window.ort;
