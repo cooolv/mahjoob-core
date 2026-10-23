@@ -1,4 +1,4 @@
-name: Publish @mahjoob/core (npm)
+name: Publish mahjoob-core (npm)
 
 on:
   workflow_dispatch:
