@@ -1,0 +1,39 @@
+name: Extension (بناء إضافة سيف فيو)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "extension/**"
+      - "packages/core-js/src/**"
+      - ".github/workflows/extension.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build core
+        working-directory: packages/core-js
+        run: |
+          npm install
+          npm run build
+      - name: Fetch models and onnxruntime-web
+        run: bash extension/scripts/fetch-assets.sh
+      - name: Assemble extension
+        run: bash extension/scripts/assemble.sh
+      - name: Sanity check
+        run: |
+          test -f extension/dist/manifest.json
+          test -f extension/dist/core/index.js
+          test $(stat -c%s extension/dist/models/gender-v1.onnx) -gt 100000
+          test $(stat -c%s extension/dist/models/face_detection_yunet_2023mar.onnx) -gt 50000
+          ls -l extension/dist/vendor
+      - uses: actions/upload-artifact@v4
+        with:
+          name: safeview-extension
+          path: extension/dist
