@@ -1,0 +1,55 @@
+name: Publish @mahjoob/core (npm)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "تجربة بدون نشر فعلي"
+        type: boolean
+        default: true
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write   # لازم لشهادة المصدر (provenance)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/core-js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm install
+      - name: Check release tag matches package version
+        if: github.event_name == 'release'
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VER="$(node -p "require('./package.json').version")"
+          if [ "${TAG#v}" != "$VER" ]; then
+            echo "الوسم $TAG لا يطابق إصدار الحزمة $VER" >&2
+            exit 1
+          fi
+      - name: Set repository metadata
+        run: |
+          npm pkg set repository.type=git \
+            repository.url="git+https://github.com/${{ github.repository }}.git" \
+            repository.directory=packages/core-js \
+            homepage="https://github.com/${{ github.repository }}/tree/main/packages/core-js" \
+            bugs.url="https://github.com/${{ github.repository }}/issues"
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Show package contents
+        run: npm pack --dry-run
+      - name: Publish
+        if: github.event_name == 'release' || inputs.dry_run == false
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
