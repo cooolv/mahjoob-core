@@ -1,7 +1,18 @@
 {
   "name": "@mahjoob/core",
   "version": "0.1.0",
-  "description": "نواة مفتوحة المصدر لحجب صور جنس معيّن (صور، مصغّرات فيديو، إطارات فيديو) محليًا على الجهاز",
+  "description": "On-device image/video gender filtering core (image guard, video guard, ONNX adapter). نواة مفتوحة المصدر لحجب صور جنس معيّن محليًا على الجهاز",
+  "keywords": [
+    "image-filter",
+    "content-filter",
+    "onnx",
+    "onnxruntime-web",
+    "face-detection",
+    "privacy",
+    "on-device",
+    "browser-extension",
+    "safeview"
+  ],
   "type": "module",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -12,21 +23,23 @@
       "default": "./dist/index.js"
     }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/fix-dts.mjs dist",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types test/*.test.ts",
-    "eval": "node --experimental-strip-types eval/cli.ts"
+    "eval": "node --experimental-strip-types eval/cli.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
     "@types/node": "^22.0.0"
   },
   "engines": {
-    "node": ">=22.6"
+    "node": ">=18"
   },
   "peerDependencies": {
     "onnxruntime-web": ">=1.17.0"
@@ -35,5 +48,8 @@
     "onnxruntime-web": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

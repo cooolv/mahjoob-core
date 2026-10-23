@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قالب بسيط لاستخدام @mahjoob/core</title>
+<style>
+  body { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 12px; line-height: 1.7; }
+  img { max-width: 100%; display: block; margin-top: 12px; }
+  img.blocked { filter: blur(30px); }
+  #out { margin-top: 12px; padding: 8px 10px; background: #f1f1ec; border-radius: 6px; white-space: pre-wrap; }
+</style>
+
+<!-- خريطة الاستيراد: تجلب النواة من npm عبر jsDelivr بلا أي أدوات بناء.
+     بعد النشر غيّر الإصدار إن لزم. للتجربة المحلية يمكن توجيهها إلى مجلد dist عندك. -->
+<script type="importmap">
+{ "imports": { "@mahjoob/core": "https://cdn.jsdelivr.net/npm/@mahjoob/core@0.1.0/dist/index.js" } }
+</script>
+<!-- onnxruntime-web (مثبّت على إصدار محدد) -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+<script type="module" src="./main.js"></script>
+</head>
+<body>
+  <h1>قالب بسيط</h1>
+  <p>كل المعالجة داخل المتصفح. اختر صورة لتجربة الحجب.</p>
+
+  <label>الحجب:
+    <select id="target">
+      <option value="female">الإناث</option>
+      <option value="male">الذكور</option>
+      <option value="any">كل الأشخاص</option>
+    </select>
+  </label>
+  <input type="file" id="file" accept="image/*" disabled>
+
+  <div id="out">جارٍ التحميل…</div>
+  <img id="preview" alt="">
+</body>
+</html>

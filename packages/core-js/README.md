@@ -1,5 +1,33 @@
 # @mahjoob/core
 
+On-device, open-source core for blocking images (and video frames) of one gender — or of any person — in browser extensions and web apps.
+It bundles a decision engine (fail-closed), an image guard, a video guard, and an ONNX Runtime adapter with a ready preset
+(YuNet face detector + gender-v1 classifier). **No models are bundled**: you download them and keep their license notices.
+
+```bash
+npm install @mahjoob/core onnxruntime-web
+```
+
+```ts
+import * as ort from "onnxruntime-web";
+import { ImageGuard, createYuNetGenderV1Analyzer, serialized } from "@mahjoob/core";
+
+const analyzer = serialized(createYuNetGenderV1Analyzer({ ort, yunetSession, genderSession }));
+const guard = new ImageGuard({ analyzer, target: "female" });   // "female" | "male" | "any"
+const decision = await guard.check(imageElementOrBitmap);        // { action: "allow" | "block", reason, regions }
+```
+
+No bundler? Use it straight from a CDN with an import map:
+`https://cdn.jsdelivr.net/npm/@mahjoob/core@0.1.0/dist/index.js`.
+
+**Accuracy is not 100%.** Measured on 200 fresh FairFace images (clear, close faces): about 7% of female faces were not blocked
+(95% CI 3.4–13.7%) and about 28% of male faces were blocked by mistake at threshold 0.2. Images where no face is detected pass through.
+Use `target: "any"` for the strictest mode. See the Arabic documentation below for details and limits.
+
+---
+
+# @mahjoob/core
+
 ## مثال: صورة أو مصغّرة
 
 ```ts
