@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="popup.css">
+<title>سيف فيو</title>
+</head>
+<body>
+  <header>
+    <h1>سيف فيو</h1>
+    <label class="switch"><input type="checkbox" id="enabled"><span>تفعيل</span></label>
+  </header>
+
+  <p id="firstrun" class="notice" hidden>اختر ما تريد حجبه. إلى أن تختار، تحجب الإضافة كل الأشخاص.</p>
+
+  <label class="row">الحجب
+    <select id="target">
+      <option value="female">صور الإناث</option>
+      <option value="male">صور الذكور</option>
+      <option value="any">كل الأشخاص (أشدّ احتياطًا)</option>
+    </select>
+  </label>
+
+  <label class="row"><input type="checkbox" id="strict"> الوضع الصارم (أي غموض أو خطأ = حجب)</label>
+
+  <label class="row" id="thrrow">عتبة الحجب
+    <input type="number" id="thr" min="0.05" max="0.9" step="0.05">
+  </label>
+
+  <label class="row"><input type="checkbox" id="siteoff"> تعطيل على <b id="host">هذا الموقع</b></label>
+
+  <p id="status" class="muted">النماذج: —</p>
+
+  <p class="warn">
+    تنبيه: التصنيف ليس مضمونًا. في قياسنا مرّت نحو 7% من وجوه الإناث الواضحة دون حجب،
+    والصور بلا وجه مكتشف تمرّ. للأمان الأعلى اختر «كل الأشخاص». الصور المضمَّنة كخلفيات CSS والعناصر داخل Shadow DOM غير مغطّاة بعد.
+  </p>
+
+  <script src="settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -9,6 +9,7 @@
 |---|---|---|
 | `packages/core-js` | v0.1 | محرك القرار + حارس الصور + حارس الفيديو (TypeScript) |
 | `packages/core-android` | مخطط | نفس المنطق لأندرويد (Kotlin) |
+| `extension` | v0.1 | إضافة Chrome/Edge/Brave «سيف فيو» المبنية على النواة |
 
 ## المبادئ
 

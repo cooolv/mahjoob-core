@@ -1,0 +1,21 @@
+/* Fail-closed: كل صورة وفيديو مخفيّان حتى يصدر القرار. إن تعطّلت الإضافة تبقى مخفية. */
+html:not([data-sv-off]) img:not([data-sv]),
+html:not([data-sv-off]) video:not([data-sv]) {
+  visibility: hidden !important;
+}
+
+/* صورة محجوبة: تُستبدل بمكان فارغ رمادي (لا تموية، حتى لا يظهر أي شيء من المحتوى) */
+html:not([data-sv-off]) img[data-sv="blocked"] {
+  visibility: visible !important;
+  content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'><rect width='120' height='80' fill='%23e4e4e0'/><g stroke='%23888' stroke-width='3' fill='none'><circle cx='60' cy='40' r='16'/><line x1='48' y1='52' x2='72' y2='28'/></g></svg>") !important;
+  object-fit: contain !important;
+  background: #e4e4e0 !important;
+  width: var(--sv-w, auto) !important;
+  height: var(--sv-h, auto) !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+html:not([data-sv-off]) video[data-sv="blocked"] {
+  visibility: hidden !important;
+}
