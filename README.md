@@ -8,7 +8,7 @@
 | الحزمة | الحالة | الوصف |
 |---|---|---|
 | `packages/core-js` | v0.1 | محرك القرار + حارس الصور + حارس الفيديو (TypeScript) |
-| `packages/core-android` | مخطط | نفس المنطق لأندرويد (Kotlin) |
+| `packages/core-android` | v0.1 | مكتبة أندرويد (AAR، Java 8) بنفس المنطق ومتجهات اختبار مشتركة |
 | `extension` | v0.1 | إضافة Chrome/Edge/Brave «سيف فيو» المبنية على النواة |
 
 ## المبادئ

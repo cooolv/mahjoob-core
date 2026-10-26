@@ -1,0 +1,56 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+android {
+    namespace 'dev.mahjoob.android'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        test {
+            // متجهات الاختبار المشتركة مع نسخة TypeScript (spec/vectors في جذر المستودع)
+            resources.srcDir '../../../spec/vectors'
+        }
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+dependencies {
+    // ONNX Runtime لأندرويد (يُسحب تلقائيًا مع المكتبة)
+    api 'com.microsoft.onnxruntime:onnxruntime-android:1.20.0'
+
+    testImplementation 'junit:junit:4.13.2'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'dev.mahjoob'
+                artifactId = 'mahjoob-android'
+                version = project.findProperty('releaseVersion') ?: '0.1.0'
+            }
+        }
+    }
+}

@@ -1,0 +1,6 @@
+# تجريبي وغير مجرَّب: JitPack يبني من جذر المستودع، والمشروع في مجلد فرعي، لذا نستخدم أوامر مخصصة.
+# يحتاج وجود gradlew (شغّل workflow «Generate Gradle wrapper» مرة واحدة أولًا).
+jdk:
+  - openjdk17
+install:
+  - cd packages/core-android && ./gradlew -PreleaseVersion=$VERSION :mahjoob-android:publishToMavenLocal
