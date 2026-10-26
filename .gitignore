@@ -5,3 +5,8 @@ dist/
 extension/.assets/
 extension/dist/
 *.tgz
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
